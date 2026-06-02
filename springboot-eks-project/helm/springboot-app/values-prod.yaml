@@ -1,0 +1,44 @@
+# Production environment overrides
+replicaCount: 3
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 12
+  targetCPUUtilization: 65
+  targetMemoryUtilization: 75
+
+env:
+  SPRING_PROFILES_ACTIVE: prod
+  JAVA_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
+
+configMap:
+  enabled: true
+  data:
+    APP_LOG_LEVEL: WARN
+
+ingress:
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: ""  # Add WAF ARN here
+  hosts:
+    - host: app.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2

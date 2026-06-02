@@ -1,0 +1,14 @@
+🚀 {{ include "springboot-app.fullname" . }} deployed!
+
+Image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+
+{{- if .Values.ingress.enabled }}
+Access the application:
+{{- range .Values.ingress.hosts }}
+  → https://{{ .host }}
+{{- end }}
+{{- end }}
+
+Verify:
+  kubectl get pods -l "app.kubernetes.io/name={{ include "springboot-app.name" . }}" -n {{ .Release.Namespace }}
+  kubectl logs -l "app.kubernetes.io/name={{ include "springboot-app.name" . }}" -n {{ .Release.Namespace }} --tail=50

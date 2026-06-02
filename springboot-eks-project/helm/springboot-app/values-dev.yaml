@@ -1,0 +1,35 @@
+# Dev environment overrides
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 384Mi
+  limits:
+    cpu: 500m
+    memory: 768Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilization: 80
+
+env:
+  SPRING_PROFILES_ACTIVE: dev
+  JAVA_OPTS: "-XX:MaxRAMPercentage=75.0"
+
+configMap:
+  enabled: true
+  data:
+    APP_LOG_LEVEL: DEBUG
+
+ingress:
+  hosts:
+    - host: dev.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+podDisruptionBudget:
+  enabled: false
