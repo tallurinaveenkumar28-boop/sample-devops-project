@@ -1,0 +1,79 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: springboot-prod
+
+resources:
+  - ../../base
+
+commonLabels:
+  environment: prod
+
+patches:
+  # Production scaling
+  - target:
+      kind: Deployment
+      name: springboot-app
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 3
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 500m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 1Gi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "2"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 2Gi
+      - op: replace
+        path: /spec/template/spec/containers/0/env/0/value
+        value: prod
+
+  # Prod HPA
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: springboot-app
+    patch: |
+      - op: replace
+        path: /spec/minReplicas
+        value: 3
+      - op: replace
+        path: /spec/maxReplicas
+        value: 12
+
+  # Prod ingress host
+  - target:
+      kind: Ingress
+      name: springboot-app
+    patch: |
+      - op: replace
+        path: /spec/rules/0/host
+        value: app.example.com
+
+  # PDB for prod
+  - patch: |
+      apiVersion: policy/v1
+      kind: PodDisruptionBudget
+      metadata:
+        name: springboot-app
+      spec:
+        minAvailable: 2
+        selector:
+          matchLabels:
+            app.kubernetes.io/name: springboot-app
+
+configMapGenerator:
+  - name: springboot-app-config
+    behavior: replace
+    literals:
+      - APP_LOG_LEVEL=WARN
+
+images:
+  - name: springboot-app
+    newName: 123456789012.dkr.ecr.us-east-1.amazonaws.com/springboot-app
+    newTag: latest

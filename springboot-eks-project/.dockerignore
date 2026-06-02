@@ -1,0 +1,11 @@
+.git
+.github
+.gitignore
+*.md
+terraform/
+helm/
+k8s/
+.idea/
+*.iml
+target/
+!target/*.jar
